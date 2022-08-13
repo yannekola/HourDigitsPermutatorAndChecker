@@ -4,29 +4,35 @@
 #include <iostream>
 
 
-
-void calculatePermutations(std::vector<int>& digitsVector, std::vector<std::vector<int>>& permutationsVector, std::vector<int> &intermediateVector, std::vector<int> &occupiedPositions, int&digitCounter)
+/*	
+	This function cycles the digit from the digits vector indicated by digit counter (argument) through all possible positions, on each cycle it calls itself but with the next digit
+	Also, the vector which stores the already used positions of the permutation is updated, that way the next recursion knows which indexes are already occupied
+	If the recursion is cycling the last digit of the digits vector, once it places it on the remaining free position on the current intermediate permutation vector, it saves this last
+		one on the vector which stores all possible permutations
+	Once each execution of the function as cycled its digit through all possible positions, we end the function and go back to the previous execution (and the previous digit)
+*/
+void Permutate(std::vector<int>& digitsVector, std::vector<std::vector<int>>& permutationsVector, std::vector<int> &intermediatePermutationVector, std::vector<int> &occupiedPositions, int&digitCounter)
 {
 
-	int i{ 0 };
-	while (i < digitsVector.size())
+	int positionCyclingIndex{ 0 };
+	while (positionCyclingIndex < digitsVector.size())
 	{
 	
-		if (std::none_of(occupiedPositions.begin(), occupiedPositions.end(), [i](int position) { return position == i; }))
+		if (std::none_of(occupiedPositions.begin(), occupiedPositions.end(), [positionCyclingIndex](int position) { return position == positionCyclingIndex; }))
 		{
 
-			intermediateVector[i] = digitsVector[digitCounter];
-			occupiedPositions.push_back(i);
+			intermediatePermutationVector[positionCyclingIndex] = digitsVector[digitCounter];
+			occupiedPositions.push_back(positionCyclingIndex);
 			if (digitCounter  == digitsVector.size() -1)
 			{
-				permutationsVector.push_back(intermediateVector);
+				permutationsVector.push_back(intermediatePermutationVector);
 
 			}
 
 			else
 			{
 				digitCounter += 1;
-				calculatePermutations(digitsVector, permutationsVector, intermediateVector, occupiedPositions, digitCounter);
+				Permutate(digitsVector, permutationsVector, intermediatePermutationVector, occupiedPositions, digitCounter);
 
 			}
 
@@ -36,7 +42,7 @@ void calculatePermutations(std::vector<int>& digitsVector, std::vector<std::vect
 
 		else {}
 
-		i++;
+		positionCyclingIndex++;
 
 	}
 	
@@ -45,18 +51,56 @@ void calculatePermutations(std::vector<int>& digitsVector, std::vector<std::vect
 }
 
 
-void calculatePermutationsWrapper( std::vector<int>& digitsVector ,std::vector<std::vector<int>>& permutationsVector )
+/*	
+	Here we have the definition of the wrapper function, which will instantiate the variables shared across recursions and make the initial call to the calculation function 
+*/
+void CalculatePermutations( std::vector<int>& digitsVector ,std::vector<std::vector<int>>& permutationsVector ) 
 {
 
-	std::vector<int> intermediateVector(digitsVector.size(), 0);
+	std::vector<int> intermediatePermutationVector(digitsVector.size(), 0);
 	std::vector<int> occupiedPositions;
-	intermediateVector.reserve(digitsVector.size());
+	intermediatePermutationVector.reserve(digitsVector.size());
 	occupiedPositions.reserve(digitsVector.size());
 	int digitCounter{0};
-	calculatePermutations(digitsVector, permutationsVector, intermediateVector, occupiedPositions, digitCounter);
+	Permutate(digitsVector, permutationsVector, intermediatePermutationVector, occupiedPositions, digitCounter);
 
 }
 
+
+void ObtainValidHours(std::vector<std::vector<int>>& permutationsVector, std::vector<std::vector<int>>& validHoursVector)
+{
+	for (auto& permutation : permutationsVector)
+	{
+
+		if (((permutation[0] * 10 + permutation[1]) < 24) && ((permutation[2] * 10 + permutation[3]) < 60))
+		{
+
+			validHoursVector.push_back(permutation);
+	
+
+		}
+
+	}
+}
+
+
+void PrintHours(std::vector< std::vector<int> >& validHoursVector)
+{
+	for (auto hour : validHoursVector)
+	{
+
+		for (int digit : hour)
+		{
+
+			std::cout << digit;
+
+		}
+
+		std::cout << "\n";
+	}
+
+	std::cout << "\n";
+}
 
 
 int main()
@@ -65,45 +109,14 @@ int main()
 	std::vector<int> digitsVector{2,1,2,4};
 	std::vector< std::vector<int> > permutationsVector;
 	std::vector< std::vector<int> > validHoursVector;
-	calculatePermutationsWrapper(digitsVector,permutationsVector);
-	int validHoursCounter = 0;
-	for (auto &permutation : permutationsVector)
-	{
-		
-		if (((permutation[0] * 10 + permutation[1]) < 24) && ((permutation[2] * 10 + permutation[3]) < 60))
-		{
-			
-			validHoursVector.push_back(permutation);
-			validHoursCounter++;
-		
-		}
-		
-		else
-		{
-
-		}
-	}
 	
-	std::cout << "Valid hours: " << validHoursCounter << "\n";
-	for (auto hour : validHoursVector) 
-	{ 
-		
-		for (int digit : hour)
-		{
-			
-			std::cout << digit; 
-		
-		}  
-		
-		std::cout << "\n";
-	} 
+	CalculatePermutations(digitsVector,permutationsVector);
+	ObtainValidHours(permutationsVector, validHoursVector);
 	
-	std::cout << "\n";
-
-
-
-
+	std::cout << "Valid hours: " << validHoursVector.size() << "\n";
 	
+	PrintHours(validHoursVector);
 
 
+	return 0;
 }

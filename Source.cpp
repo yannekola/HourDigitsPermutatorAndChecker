@@ -67,12 +67,12 @@ void CalculatePermutations( std::vector<int>& digitsVector ,std::vector<std::vec
 }
 
 
-void ObtainValidHours(std::vector<std::vector<int>>& permutationsVector, std::vector<std::vector<int>>& validHoursVector)
+void GetValidHours(std::vector<std::vector<int>>& permutationsVector, std::vector<std::vector<int>>& validHoursVector)
 {
 	for (auto& permutation : permutationsVector)
 	{
 
-		if (((permutation[0] * 10 + permutation[1]) < 24) && ((permutation[2] * 10 + permutation[3]) < 60))
+		if ((((permutation[0] * 10 + permutation[1]) < 24) && ((permutation[2] * 10 + permutation[3]) < 60)) && (std::none_of(validHoursVector.begin(), validHoursVector.end(), [permutation](std::vector<int> validHour) { return permutation == validHour; })))
 		{
 
 			validHoursVector.push_back(permutation);

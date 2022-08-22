@@ -2,6 +2,8 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 
 /*	
@@ -17,10 +19,8 @@ void Permutate(std::vector<int>& digitsVector, std::vector<std::vector<int>>& pe
 	int positionCyclingIndex{ 0 };
 	while (positionCyclingIndex < digitsVector.size())
 	{
-	
 		if (std::none_of(occupiedPositions.begin(), occupiedPositions.end(), [positionCyclingIndex](int position) { return position == positionCyclingIndex; }))
 		{
-
 			intermediatePermutationVector[positionCyclingIndex] = digitsVector[digitCounter];
 			occupiedPositions.push_back(positionCyclingIndex);
 			if (digitCounter  == digitsVector.size() -1)
@@ -55,28 +55,29 @@ void Permutate(std::vector<int>& digitsVector, std::vector<std::vector<int>>& pe
 	Here we have the definition of the wrapper function, which will instantiate the variables shared across recursions and make the initial call to the calculation function 
 */
 void CalculatePermutations( std::vector<int>& digitsVector ,std::vector<std::vector<int>>& permutationsVector ) 
-{
-
-	std::vector<int> intermediatePermutationVector(digitsVector.size(), 0);
-	std::vector<int> occupiedPositions;
+{	
+	std::vector<int> intermediatePermutationVector(digitsVector.size(),0);
 	intermediatePermutationVector.reserve(digitsVector.size());
+	std::vector<int> occupiedPositions;
 	occupiedPositions.reserve(digitsVector.size());
+	
 	int digitCounter{0};
 	Permutate(digitsVector, permutationsVector, intermediatePermutationVector, occupiedPositions, digitCounter);
 
 }
 
-
+/*
+	We check if the permutations in the permutations vector configure a valid 24 hour format time, 
+	if a permutation does, it is pushed into the valid hours vector
+*/
 void GetValidHours(std::vector<std::vector<int>>& permutationsVector, std::vector<std::vector<int>>& validHoursVector)
 {
 	for (auto& permutation : permutationsVector)
 	{
-
 		if ((((permutation[0] * 10 + permutation[1]) < 24) && ((permutation[2] * 10 + permutation[3]) < 60)) && (std::none_of(validHoursVector.begin(), validHoursVector.end(), [permutation](std::vector<int> validHour) { return permutation == validHour; })))
 		{
 
 			validHoursVector.push_back(permutation);
-	
 
 		}
 
@@ -103,20 +104,65 @@ void PrintHours(std::vector< std::vector<int> >& validHoursVector)
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
-	
-	std::vector<int> digitsVector{2,1,2,4};
+	std::vector<int> digitsVector;
+	digitsVector.reserve(argc - 1);
 	std::vector< std::vector<int> > permutationsVector;
-	std::vector< std::vector<int> > validHoursVector;
+	std::vector< std::vector<int> > validHoursVector; 
 	
+	if (argc > 1)
+	{
+
+		int i = 0;
+		std::stringstream CLArgument;
+		int intArgument{};
+		while ((i+1) <= (argc-1))
+		{
+			CLArgument.clear();
+			CLArgument.str(argv[i + 1]);
+			
+			if (!(CLArgument >> intArgument))
+			{
+				std::cout << "Invalid argument " << argv[i + 1] << "\n";
+				return 1;
+
+			}
+
+			else
+			{
+				if ((intArgument < 10) && (intArgument > -1))
+				{
+					digitsVector.push_back(intArgument);
+
+				}
+
+				else
+				{
+					std::cout << "Invalid (greater than 10 or less than 0) integer argument\n";
+					return 1;
+
+				}
+
+			}
+			
+			i += 1;
+
+		}
+
+	}
+	
+	else
+	{
+		std::cout << "No valid integer arguments\n";
+		return 1;
+
+	}
 	CalculatePermutations(digitsVector,permutationsVector);
-	ObtainValidHours(permutationsVector, validHoursVector);
+	GetValidHours(permutationsVector, validHoursVector);
 	
 	std::cout << "Valid hours: " << validHoursVector.size() << "\n";
-	
 	PrintHours(validHoursVector);
-
 
 	return 0;
 }
